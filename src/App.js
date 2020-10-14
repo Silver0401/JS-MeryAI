@@ -50,9 +50,11 @@ function App() {
     const SearchSong = (request) => {
       let SongNameList = []
       let counter = 0
+      let checker = 1
 
       request.forEach((word) => {
-        if (word === "search" || word === "song" || word === "track") { }
+        if (word === "search" || word === "song" || word === "track") {}
+        else if (word === " ") {checker = 2}
         else {
           for (let c = 0; c <= word.length - 1; c++) {
             if (c === 0) SongNameList.push((word.charAt(0)).toUpperCase())
@@ -61,17 +63,16 @@ function App() {
             }
           }
 
-          console.log(request)
-
-          if (counter < request.length - 1 && counter !== 0) SongNameList.push(" ")
-          counter += 1
+          if (counter < request.length - 1 && counter > checker ) SongNameList.push(" ")
         }
+
+        counter += 1;
       })
 
       let songName = SongNameList.join("")
 
-      if (songName === "Belt ") songName = "Nur Noch Kurz Die Welt Retten"
-      if (songName === "Kiss ") songName = "Zou Bisou Bisou"
+      if (songName === "Belt") songName = "Nur Noch Kurz Die Welt Retten"
+      if (songName === "Kiss") songName = "Zou Bisou Bisou"
       if (songName === "for minutes") songName = "4 minutes"
 
       Speak(`Playing ${songName}`)
@@ -273,7 +274,7 @@ function App() {
             RunTCommand(
               "osascript -e 'tell application \"Music\" to next track'"
             );
-            Speak("changing to Next song")
+            Speak("Next song")
           }
           if (audio.includes("previous")) {
             RunTCommand(
