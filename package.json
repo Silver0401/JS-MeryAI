@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@google-cloud/text-to-speech": "^3.1.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
+    "animejs": "^3.2.0",
     "axios": "^0.20.0",
     "concurrently": "^5.3.0",
     "node-cmd": "^3.0.0",
@@ -14,8 +16,8 @@
     "react-scripts": "3.4.3"
   },
   "scripts": {
-    "start":"cd Backend && npm start",
-    "both-ends": "concurrently \"npm start\" \"cd Backend && APP_STATE=dev npm run begin\"",
+    "start": "cd Backend && npm start",
+    "both-ends": "concurrently \"npm run front-end\" \"cd Backend && APP_STATE=dev nodemon server.js\"",
     "front-end": "PORT=9000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -24,9 +26,7 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-
-  "proxy":"http://localhost:8000",
-
+  "proxy": "http://localhost:8000",
   "browserslist": {
     "production": [
       ">0.2%",
