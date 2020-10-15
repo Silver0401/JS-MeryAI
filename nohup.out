@@ -1,0 +1,100 @@
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing
+/Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend/server.js:130
+    window.close()
+    ^
+
+ReferenceError: window is not defined
+    at Server.<anonymous> (/Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend/server.js:130:5)
+    at Object.onceWrapper (events.js:416:28)
+    at Server.emit (events.js:310:20)
+    at emitCloseNT (net.js:1657:8)
+    at processTicksAndRejections (internal/process/task_queues.js:83:21)
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! backend@1.0.0 start: `export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the backend@1.0.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /Users/Ismael/.npm/_logs/2020-10-14T20_18_31_803Z-debug.log
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! mery-ai@0.1.0 start: `cd Backend && npm start`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the mery-ai@0.1.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /Users/Ismael/.npm/_logs/2020-10-14T20_18_31_861Z-debug.log
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing
+
+> mery-ai@0.1.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai
+> cd Backend && npm start
+
+
+> backend@1.0.0 start /Users/Ismael/Desktop/Programmieren/Mery-AI/JSMery/mery-ai/Backend
+> export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na "Google Chrome" --args --new-window --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>" && node server.js
+
+App server initalized on port 8000
+Process terminated, closing

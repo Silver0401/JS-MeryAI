@@ -1,8 +1,9 @@
 // const { json } = require("express")
 // const mongoose = require("mongoose")
-const path = require("path")
-const express = require("express")
+const path = require("path");
+const express = require("express");
 const cmd = require("node-cmd");
+const KeyController = require("robotjs");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const fs = require("fs");
@@ -19,6 +20,10 @@ let data = {
 
 let info = {
     text: "waiting for utterance"
+}
+
+let material = {
+    key: "none"
 }
 
 app.use(express.json())
@@ -42,9 +47,43 @@ if (process.env.APP_STATE === "prod") {
 
 // Testing Stuff
 
-app.get("/transcript", (req,res) => {
-    res.json(data)
-}) 
+// app.get("/transcript", (req,res) => {
+//     res.json(data)
+// }) 
+
+app.post("/pressKey", (req,res) => {
+
+    material = {
+        key:req.body.key
+    }
+
+    if (material.key !== "none"){
+
+        if (material.key === "Move Mouse") {
+
+            res.send("Key obtained, moving mouse...");
+
+            KeyController.setMouseDelay(2);
+            var twoPI = Math.PI * 2.0;
+            var screenSize = KeyController.getScreenSize();
+            var height = screenSize.height / 2 - 10;
+            var width = screenSize.width;
+
+            for (var x = 0; x < width; x++) {
+                y = height * Math.sin((twoPI * x) / width) + height;
+                KeyController.moveMouse(x, y);
+            }
+
+        } 
+        
+        if (material.key === "Press Space") {
+
+            res.send("Key obtained, pressing key...");
+
+            KeyController.keyTap(" ");
+        }
+    }
+})
 
 app.post("/transcript", (req,res) => {
 
@@ -68,7 +107,6 @@ app.post("/speaking", (req,res) => {
 
     if (info.text !== "waiting for utterance"){
 
-        res.send(`text to speak received, buffering...`);
         // Creates a client
         const client = new textToSpeech.TextToSpeechClient();
 
@@ -93,6 +131,14 @@ app.post("/speaking", (req,res) => {
         // console.log("Audio content written to file: output.mp3");
         cmd.run("afplay output.mp3");
         }
+
+        if (info.text === "Ba Bye") {
+            res.send("ending process");
+            process.kill(process.pid, "SIGTERM");
+
+        } else {    
+            res.send(`text to speak received, buffering...`);
+        }
     
         
         quickStart();
@@ -115,4 +161,10 @@ app.post("/speaking", (req,res) => {
 
 // Port Listening
 
-app.listen(port, () => console.log(`App server initalized on port ${port}`))
+const server = app.listen(port, () => console.log(`App server initalized on port ${port}`))
+
+process.on("SIGTERM", () => {
+  server.close(() => {
+    console.log("Process terminated, closing");
+  });
+});

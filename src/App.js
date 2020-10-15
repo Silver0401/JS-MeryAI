@@ -35,15 +35,28 @@ function App() {
         .then((response) => console.log(response.data))
         .catch((err) => console.log(`ActionCommand ERROR:${err}`));
         
-      }
+    }
       
+    const CPURemote = (command) => {
+
+      axios
+        .post("/pressKey", {
+          key: command,
+        })
+        .then((response) => console.log(response.data))
+        .catch((err) => console.log(`ActionCommand ERROR:${err}`));
+  
+    }
+
     const Speak = (response) => {
 
         axios
           .post("/speaking", {
             text: response
           })
-          .then((res) => console.log(res.data))
+          .then((res) =>{res.data === "ending process"
+            ? window.close()
+            : console.log(res.data);})
           .catch(err => console.log(`SpeechSynthesis ERROR: ${err}`))
     }
 
@@ -122,6 +135,14 @@ function App() {
           Speak("I didn't find such playlist")
       }
 
+    }
+
+    const SetVolumeTo = (command) => {
+
+      let FilteredVolLevel = command[command.length - 1]
+
+      Speak(`Volume set to ${FilteredVolLevel}`)
+      RunTCommand(`osascript -e "set volume output volume ${FilteredVolLevel}"`);
     }
 
     // Initialize Mery AI
@@ -238,6 +259,7 @@ function App() {
         window.msSpeechRecognition)();
 
       let KeyWordHeard = false;
+      let HandsFreeModeOn = false;
       recognition.lang = "en-US";
       // recognition.maxAlternatives = 1
       recognition.interimResults = false;
@@ -256,54 +278,79 @@ function App() {
         if (KeyWordHeard) {
           // AIAnimation();
 
-          if (audio.includes("thanks") || audio.includes("nevermind")) {
-            // console.log("sure thing");
-            Speak("sure thing")
-            KeyWordHeard = false;
+          if (audio.includes("volume")){
+              SetVolumeTo(audio)
           }
-          if (audio.includes("netflix state")) {
-            if (audio.includes("stop")) {
-              console.log("stopping netflix");
-              // CPURemote("keyboardPress", "space");
-            } else if (audio.includes("play")) {
-              console.log("playing netflix");
-              // CPURemote("keyboardPress", "space");
+
+          if (HandsFreeModeOn){
+              if (audio.includes("stop") || audio.includes("pause")) {
+                Speak("Stopping");
+                CPURemote("Press Space");
+              } 
+              if (audio.includes("play") || audio.includes("resume")){
+                Speak("Resuming");
+                CPURemote("Press Space");
+              }
+              
+              if (audio.includes("exit")){
+                Speak("Exiting Hands Free Mode")
+
+                HandsFreeModeOn = false
+              }
+          } else {
+  
+            if (audio.includes("thanks") || audio.includes("nevermind")) {
+              // console.log("sure thing");
+              Speak("sure thing")
+              KeyWordHeard = false;
             }
-          }
-          if (audio.includes("next")) {
-            RunTCommand(
-              "osascript -e 'tell application \"Music\" to next track'"
-            );
-            Speak("Next song")
-          }
-          if (audio.includes("previous")) {
-            RunTCommand(
-              "osascript -e 'tell application \"Music\" to previous track'"
-            );
-            Speak("changing to Previous song");
-          }
-          if (audio.includes("stop") || audio.includes("pause")) {
-            RunTCommand("osascript -e 'tell application \"Music\" to pause'");
-            Speak("Song stopped");
-          }
-          if (audio.includes("resume") || audio.includes("play")) {
-            RunTCommand("osascript -e 'tell application \"Music\" to play'");
-            Speak("Playing");
-          }
-          if (audio.includes("set") || audio.includes("modo")) {
+            if (audio.includes("hands-free")) {
+  
+              Speak("Buffering up hands free mode")
+  
+              HandsFreeModeOn = true
+  
+            }
+            if (audio.includes("next")) {
+              RunTCommand(
+                "osascript -e 'tell application \"Music\" to next track'"
+              );
+              Speak("changing song")
+            }
+            if (audio.includes("previous")) {
+              RunTCommand(
+                "osascript -e 'tell application \"Music\" to previous track'"
+              );
+              Speak("changing song");
+            }
+            if (audio.includes("stop") || audio.includes("pause")) {
+              RunTCommand("osascript -e 'tell application \"Music\" to pause'");
+              Speak("Song stopped");
+            }
+            if (audio.includes("resume") || audio.includes("play")) {
+              RunTCommand("osascript -e 'tell application \"Music\" to play'");
+              Speak("Playing");
+            }
+            if (audio.includes("set") || audio.includes("modo")) {
+  
+              if (audio.includes("spanish") || audio.includes("español")) setLang("es-AR")
+              if (audio.includes("english") || audio.includes("inglés")) setLang("en-US")
+  
+            }
+            if (audio.includes("search")) {
+  
+              if (audio.includes("song") || audio.includes("track")) SearchSong(audio)
+              if (audio.includes("playlist")) SearchPlayList(audio)
+              
+            }
+            if (audio.includes("talk")){
+              Speak("Hello World")
+            }
+            if (audio.includes("exit")){
+              Speak("Ba Bye")
+              // process.exit()
+            }
 
-            if (audio.includes("spanish") || audio.includes("español")) setLang("es-AR")
-            if (audio.includes("english") || audio.includes("inglés")) setLang("en-US")
-
-          }
-          if (audio.includes("search")) {
-
-            if (audio.includes("song") || audio.includes("track")) SearchSong(audio)
-            if (audio.includes("playlist")) SearchPlayList(audio)
-            
-          }
-          if (audio.includes("talk")){
-            Speak("Hello World")
           }
 
         } else {

@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && open -na \"Google Chrome\" --args --new-window --app=\"data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(200,200);window.alwaysRaised='yes';window.location='http://localhost:8000';</script></body></html>\" && node server.js",
-    "begin": "nodemon server.js"
+    "begin": "export GOOGLE_APPLICATION_CREDENTIALS=/Users/Ismael/Desktop/Programmieren/Mery-AI/mery-pva-app-9890adb916c8.json && nodemon server.js"
   },
   "keywords": [],
   "author": "Shelas",
