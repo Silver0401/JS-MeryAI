@@ -18,6 +18,10 @@ let data = {
     action: "waiting for action"
 }
 
+let dataFetcher = {
+    action: "waiting for action"
+}
+
 let info = {
     text: "waiting for utterance"
 }
@@ -79,8 +83,21 @@ app.post("/pressKey", (req,res) => {
         if (material.key === "Press Space") {
 
             res.send("Key obtained, pressing key...");
-
             KeyController.keyTap(" ");
+        }
+        
+        if (material.key === "Press M"){
+
+            res.send("Key obtained, pressing key...");
+            KeyController.keyTap("m");
+
+        }
+
+        if (material.key === "Press F"){
+
+            res.send("Key obtained, pressing key...");
+            KeyController.keyTap("f");
+
         }
     }
 })
@@ -95,6 +112,31 @@ app.post("/transcript", (req,res) => {
 
     if (data.action !== "waiting for action") {
         cmd.run(data.action);
+    }
+})
+
+app.post("/dataFetcher", (req,res) => {
+
+    dataFetcher = {
+        action: req.body.action
+    }
+
+    if (dataFetcher.action !== "waiting for action") {
+        cmd.run(data.action, function(err,data,stderr) {
+            
+            console.log(data)
+            res.send(data)
+        });
+
+        
+
+        
+
+        // console.log("inside datafetcher post2")
+
+        let TOutput = "be_none"
+        res.send(TOutput)
+        
     }
 })
 

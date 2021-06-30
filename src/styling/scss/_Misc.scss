@@ -1,0 +1,63 @@
+@mixin alignCenter {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.App{
+    .MuteButton{
+        @include alignCenter();
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+        background-color: #28FDBA;
+        transition: all 1s;
+        border-top-left-radius: 50%;
+        
+        .Line{
+            position: absolute;
+            width: 25px;
+            height: 1.5px;
+            background-color: black;
+            transform: rotate(-45deg);
+            z-index: 1;
+            opacity: 0;
+            transition: all 1s;
+        }
+
+        svg{
+            position: relative;
+            width: 60%;
+            height: 60%;
+            fill: black;
+            background-color: transparent;
+            z-index: 0;
+            transition: all 1s;
+        }
+    }
+
+    .CloseButton{
+        @extend .MuteButton;
+        top: 0;
+        left: 0;
+        background-color: transparent;
+        border: 1.5px solid #28FDBA;
+        cursor: pointer;
+        border-top-left-radius: 0%;
+        border-bottom-right-radius: 50%;
+
+        svg{
+            width:50%;
+            height:50%;
+            fill: white;
+            // background-color: red;
+            // filter: drop-shadow(0px 0px 5px );
+        }
+
+    }
+}

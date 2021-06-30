@@ -1,0 +1,48 @@
+@keyframes spinRight {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinLeft {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.App .SvgBox{
+  position: relative;
+  width: 110px;
+  height: 110px;
+
+    svg{
+        width: 100%;
+        height: 100%;
+        position: relative;
+        /* padding: 40px; */
+        /* background-color: white; */
+
+        .animCircle1, .animCircle2{
+            transform-origin: center;
+        }
+        .animCircle1{
+            animation: spinRight 5s linear infinite;
+        }
+        .animCircle2{
+            animation: spinLeft 5s linear infinite;
+        }
+        .eye ellipse{
+            transition: ry 400ms;
+        }
+
+    }
+
+
+
+}

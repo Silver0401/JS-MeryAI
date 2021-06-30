@@ -31,8 +31,6 @@ const Bot = () => {
                     }
 
                     var average = values / length;
-
-                    // console.log(Math.round(average));
                     setVolume(average)
                 };
             })
@@ -65,7 +63,7 @@ const Bot = () => {
                 <path d="M326 158C326 240.718 255.837 308 169 308C82.1634 308 12 240.718 12 158C12 75.2824 82.1634 8 169 8C255.837 8 326 75.2824 326 158Z" stroke="white" strokeWidth="6" />
             </g>
             <g className="animCircle1" filter="url(#filter1_d)">
-                <path d="M319.5 158C319.5 244.488 252.065 314.5 169 314.5C85.9353 314.5 18.5 244.488 18.5 158C18.5 71.5122 85.9353 1.5 169 1.5C252.065 1.5 319.5 71.5122 319.5 158Z" stroke="#28FDBA" strokeWidth={Volume <= 5 ? "5" : Volume / 3} />
+                <path d="M319.5 158C319.5 244.488 252.065 314.5 169 314.5C85.9353 314.5 18.5 244.488 18.5 158C18.5 71.5122 85.9353 1.5 169 1.5C252.065 1.5 319.5 71.5122 319.5 158Z" stroke="#28FDBA" strokeWidth={Volume} />
             </g>
             <g className="animCircle2" filter="url(#filter2_f)">
                 <path d="M332.5 158C332.5 237.748 259.136 302.5 168.5 302.5C77.8642 302.5 4.5 237.748 4.5 158C4.5 78.2523 77.8642 13.5 168.5 13.5C259.136 13.5 332.5 78.2523 332.5 158Z" stroke="#28FDBA" />
