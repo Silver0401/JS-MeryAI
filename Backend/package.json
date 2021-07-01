@@ -4,7 +4,7 @@
   "description": "mery AI backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "export GOOGLE_APPLICATION_CREDENTIALS=./../src/resources/mery-pva-app-9890adb916c8.json && node server.js",
     "LocalStart": "export GOOGLE_APPLICATION_CREDENTIALS=./../src/resources/mery-pva-app-9890adb916c8.json && open -na \"Google Chrome\" --args --new-window --app=\"data:text/html,<html><body><script>window.moveTo(20,0);window.resizeTo(175,175);window.location='http://localhost:8000';</script></body></html>\" && node server.js",
     "begin": "export GOOGLE_APPLICATION_CREDENTIALS=./../src/resources/mery-pva-app-9890adb916c8.json && nodemon server.js"
   },
