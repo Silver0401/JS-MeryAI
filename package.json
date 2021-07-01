@@ -18,6 +18,7 @@
   },
   "scripts": {
     "start": "cd Backend && npm start",
+    "LocalStart": "cd Backend && npm run LocalStart",
     "both-ends": "concurrently \"npm run front-end\" \"npm run back-end\"",
     "front-end": "PORT=9000 react-scripts start",
     "back-end": "cd Backend && APP_STATE=dev npm run begin",
