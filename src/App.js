@@ -11,7 +11,6 @@ function App() {
   const nameList = [
     "mery",
     "mary",
-    "married",
     "ameri",
     "marry",
     "marion",
@@ -21,7 +20,6 @@ function App() {
     "merry",
     "mari",
   ];
-
 
   // Mery Commands
 
@@ -35,15 +33,16 @@ function App() {
   };
 
   const RunTInfoFetcher = (command) => {
-
-      axios
+    axios
       .post("/dataFetcher", {
         action: command,
       })
-      .then((response) => { console.log(response.data) })
+      .then((response) => {
+        console.log(response.data);
+      })
       .catch((err) => console.log(`ActionCommand ERROR:${err}`));
-  }
-    
+  };
+
   const CPURemote = (command) => {
     axios
       .post("/pressKey", {
@@ -94,17 +93,14 @@ function App() {
     if (songName === "Kiss") songName = "Zou Bisou Bisou";
     if (songName === "for minutes") songName = "4 minutes";
 
-    let songArtist = RunTInfoFetcher(`osascript -e 'tell application "Music" to get artist of track "${songName}"'`)
+    // let songArtist = RunTInfoFetcher(`osascript -e 'tell application "Music" to get artist of track "${songName}"'`)
 
     // Speak(`Playing ${songName} of ${songArtist}`)
-    Speak(`Playing ${songName}`)
+    Speak(`Playing ${songName}`);
 
     RunTCommand(
       `osascript -e 'tell application "Music" to play track "${songName}"'`
     );
-    // console.log(
-    //   `osascript -e 'tell application "Music" to play track "${songName}"'`
-    // );
   };
 
   const SearchPlayList = (request) => {
@@ -127,27 +123,27 @@ function App() {
         );
         break;
       case "pop":
-        Speak("Playing Playlist Pop songs ");
+        Speak("Playing Pop songs Playlist");
         RunTCommand(
-          `osascript -e 'tell app "Music" to play the playlist named "POP"'`
+          `osascript -e 'tell app "Music" to play the playlist named "Pop of Pop"'`
         );
         break;
       case "rock":
         Speak("Playing Playlist Rock Songs  ");
         RunTCommand(
-          `osascript -e 'tell app "Music" to play the playlist named "Rock"'`
+          `osascript -e 'tell app "Music" to play the playlist named "Rock Biatch"'`
         );
         break;
       case "sad":
         Speak("Playing Playlist Sad Songs ");
         RunTCommand(
-          `osascript -e 'tell app "Music" to play the playlist named "Sad Songs :'3"'`
+          `osascript -e 'tell app "Music" to play the playlist named "Laura Sad"'`
         );
         break;
       case "dancing":
         Speak("Playing Playlist Dancing Songs ");
         RunTCommand(
-          `osascript -e 'tell app "Music" to play the playlist named "Cumbiones Sabrosones"'`
+          `osascript -e 'tell app "Music" to play the playlist named "Para Bailar y Limpiar"'`
         );
         break;
       case "exercise" || "exercising":
@@ -162,52 +158,106 @@ function App() {
   };
 
   const SearchBand = (request) => {
+    console.log("searching");
 
-  console.log("searching")
+    let BandNameList = [];
+    let counter = 0;
+    let checker = 1;
 
-  let BandNameList = []
-  let counter = 0
-  let checker = 1
-
-  request.forEach((word) => {
-    if (word === "search" || word === "band" || word === "track" || word === "artist") {}
-    else if (word === " ") {checker = 2}
-    else {
-      for (let c = 0; c <= word.length - 1; c++) {
-        if (c === 0) BandNameList.push((word.charAt(0)).toUpperCase())
-        else {
-          BandNameList.push(word.charAt(c))
+    request.forEach((word) => {
+      if (
+        word === "search" ||
+        word === "band" ||
+        word === "track" ||
+        word === "artist"
+      ) {
+      } else if (word === " ") {
+        checker = 2;
+      } else {
+        for (let c = 0; c <= word.length - 1; c++) {
+          if (c === 0) BandNameList.push(word.charAt(0).toUpperCase());
+          else {
+            BandNameList.push(word.charAt(c));
+          }
         }
+
+        if (counter < request.length - 1 && counter > checker)
+          BandNameList.push(" ");
       }
 
-      if (counter < request.length - 1 && counter > checker ) BandNameList.push(" ")
+      counter += 1;
+    });
+
+    let ArtistName = BandNameList.join("");
+
+    Speak(`Reproducing songs by ${ArtistName}`);
+
+    for (let c = 1; c < 15; c++) {
+      RunTCommand(
+        `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+      );
     }
+    for (let c = 1; c < 15; c++) {
+      RunTCommand(
+        `osascript -e 'tell app "Music" to duplicate track the name of (track ${c} whose artist is "${ArtistName}") to playlist "Polymorph"'`
+      );
+    }
+  };
 
-    counter += 1;
-  })
+  const RepeatSongForever = (request) => {
+    let SongNameList = [];
+    let counter = 0;
+    let checker = 1;
 
-  let ArtistName = BandNameList.join("")
+    request.forEach((word) => {
+      if (
+        word === "undefinetely" ||
+        word === "song" ||
+        word === "track" ||
+        word === "forever" ||
+        word === "repeat"
+      ) {
+      } else if (word === " ") {
+        checker = 2;
+      } else {
+        for (let c = 0; c <= word.length - 1; c++) {
+          if (c === 0) SongNameList.push(word.charAt(0).toUpperCase());
+          else {
+            SongNameList.push(word.charAt(c));
+          }
+        }
 
-  Speak(`Reproducing songs by ${ArtistName}`)
+        if (counter < request.length - 1 && counter > checker)
+          SongNameList.push(" ");
+      }
 
+      counter += 1;
+    });
 
-  for (let c = 1; c < 15; c ++){
-    RunTCommand(`osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`)
-  }
-  for (let c = 1; c < 15; c ++){
-    RunTCommand(`osascript -e 'tell app "Music" to duplicate track the name of (track ${c} whose artist is "${ArtistName}") to playlist "Polymorph"'`)
-  }
+    let songName = SongNameList.join("");
+    console.log(songName);
 
-}
+    Speak(`Repeating Forever, song: ${songName}`);
+
+    for (let c = 1; c < 15; c++) {
+      RunTCommand(
+        `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+      );
+    }
+    for (let c = 1; c < 15; c++) {
+      RunTCommand(
+        `osascript -e 'tell app "Music" to duplicate track "${songName}" to playlist "Polymorph"'`
+      );
+    }
+  };
 
   const SetVolumeTo = (command, app) => {
-
     let VolumeLevelDesired = command[command.length - 1];
 
     if (VolumeLevelDesired === "five") VolumeLevelDesired = "5";
     if (VolumeLevelDesired === "ten") VolumeLevelDesired = "10";
 
-    if (app === "general"){
+    if (app === "general") {
       let FilteredVolLevel = VolumeLevelDesired;
 
       FilteredVolLevel = parseInt(FilteredVolLevel) || "NoNumberObtained";
@@ -218,7 +268,7 @@ function App() {
         RunTCommand(
           `osascript -e "set volume output volume ${FilteredVolLevel}"`
         );
-      }  
+      }
     } else if (app === "itunes") {
       let FilteredVolLevel = VolumeLevelDesired;
 
@@ -230,10 +280,8 @@ function App() {
         RunTCommand(
           `osascript -e 'tell app "Music" to set sound volume to ${FilteredVolLevel}'`
         );
-      }  
+      }
     }
-
-    
   };
 
   const SayAJoke = () => {
@@ -248,10 +296,10 @@ function App() {
       "Where do you find a cow with no legs?. Right where you left it",
       "Why is 6 afraid of 7?. Beacuse 7,8,9",
       "How do trees go online?. They just log in",
-    ]
+    ];
 
-    Speak(jokeList[Math.floor(Math.random() * jokeList.length)])
-  }
+    Speak(jokeList[Math.floor(Math.random() * jokeList.length)]);
+  };
 
   useEffect(() => {
     const AIListenerEn = () => {
@@ -294,15 +342,104 @@ function App() {
         if (KeyWordHeard) {
           CurrentState = "awaiting command";
 
-          if ((audio.includes("itunes") || audio.includes("music")) && audio.includes("volume")) {
+          if (
+            (audio.includes("itunes") || audio.includes("music")) &&
+            audio.includes("volume")
+          ) {
             SetVolumeTo(audio, "itunes");
           }
-          if ((audio.includes("general") || audio.includes("computer")) && audio.includes("volume")) {
+          if (
+            (audio.includes("general") || audio.includes("computer")) &&
+            audio.includes("volume")
+          ) {
             SetVolumeTo(audio, "general");
           }
+          if (
+            ((audio.includes("tell") && audio.includes("me")) ||
+              (audio.includes("say") && audio.includes("a")) ||
+              (audio.includes("tell") && audio.includes("a"))) &&
+            audio.includes("joke")
+          ) {
+            SayAJoke();
+          }
+          if (audio.includes("screenshot")) {
+            const randomGeneratedNumber = Math.floor(Math.random() * 10000000);
+            RunTCommand(
+              `screencapture ~/Desktop/Screenshots/meryScreenshots${randomGeneratedNumber}.jpg`
+            );
+          }
 
-          if (((audio.includes("tell") && audio.includes("me")) || (audio.includes("say") && audio.includes("a")) || (audio.includes("tell") && audio.includes("a"))) && audio.includes("joke")){
-            SayAJoke()
+          if (audio.includes("next") && audio.includes("song")) {
+            RunTCommand(
+              "osascript -e 'tell application \"Music\" to next track'"
+            );
+          }
+          if (audio.includes("previous") && audio.includes("song")) {
+            RunTCommand(
+              "osascript -e 'tell application \"Music\" to previous track'"
+            );
+          }
+          if (audio.includes("repeat") && audio.includes("song")) {
+            RunTCommand(
+              "osascript -e 'tell application \"Music\" to back track'"
+            );
+
+            Speak("replaying song");
+          }
+          if (
+            (audio.includes("stop") && audio.includes("song")) ||
+            (audio.includes("pause") && audio.includes("song")) ||
+            (audio.includes("stop") && audio.includes("music")) ||
+            (audio.includes("pause") && audio.includes("music"))
+          ) {
+            RunTCommand("osascript -e 'tell application \"Music\" to pause'");
+            Speak("Song ceased");
+          }
+          if (
+            (audio.includes("resume") && audio.includes("music")) ||
+            (audio.includes("play") && audio.includes("music")) ||
+            (audio.includes("resume") && audio.includes("song")) ||
+            (audio.includes("play") && audio.includes("song"))
+          ) {
+            RunTCommand("osascript -e 'tell application \"Music\" to play'");
+            Speak("Reproducing");
+          }
+
+          if (
+            ((audio.includes("stop") && audio.includes("video")) ||
+              (audio.includes("pause") && audio.includes("video"))) &&
+            LastCommand !== "stop video"
+          ) {
+            LastCommand = "stop video";
+            Speak("Stopping");
+            CPURemote("Press Space");
+          }
+          if (
+            ((audio.includes("play") && audio.includes("video")) ||
+              (audio.includes("resume") && audio.includes("video"))) &&
+            LastCommand !== "play video"
+          ) {
+            LastCommand = "play video";
+            Speak("Resuming");
+            CPURemote("Press Space");
+          }
+          if (
+            ((audio.includes("mute") && audio.includes("video")) ||
+              (audio.includes("silence") && audio.includes("video"))) &&
+            LastCommand !== "mute video"
+          ) {
+            LastCommand = "mute video";
+            Speak("muting volume");
+            CPURemote("Press M");
+          }
+          if (
+            audio.includes("unmute") &&
+            audio.includes("video") &&
+            LastCommand !== "unmute video"
+          ) {
+            LastCommand = "unmute video";
+            Speak("unmuting volume");
+            CPURemote("Press M");
           }
 
           nameList.forEach((word) => {
@@ -356,7 +493,7 @@ function App() {
               }
             }
             if (audio.includes("exit")) {
-              Speak("Exiting Hands Free Mode");
+              Speak("Exiting context");
 
               HandsFreeModeOn = false;
             }
@@ -374,13 +511,17 @@ function App() {
               );
             }
             if (audio.includes("repeat")) {
-              // "osascript -e 'tell application \"Music\" to previous track'"
-
-              RunTCommand(
-                "osascript -e 'tell application \"Music\" to back track'"
-              );
-
-              Speak("replaying song");
+              if (audio.includes("undefinetely") || audio.includes("forever")) {
+                RepeatSongForever(audio);
+                RunTCommand(
+                  `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
+                );
+              } else {
+                Speak("replaying song");
+                RunTCommand(
+                  "osascript -e 'tell application \"Music\" to back track'"
+                );
+              }
             }
             if (audio.includes("stop") || audio.includes("pause")) {
               RunTCommand("osascript -e 'tell application \"Music\" to pause'");
@@ -391,17 +532,20 @@ function App() {
               Speak("Reproducing");
             }
             if (audio.includes("search")) {
-              if (audio.includes("song") || audio.includes("track"))SearchSong(audio);
+              if (audio.includes("song") || audio.includes("track"))
+                SearchSong(audio);
               if (audio.includes("playlist")) SearchPlayList(audio);
-              if (audio.includes("band") || audio.includes("artist")){
-                SearchBand(audio)
-                RunTCommand(`osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`)
+              if (audio.includes("band") || audio.includes("artist")) {
+                SearchBand(audio);
+                RunTCommand(
+                  `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
+                );
               }
             }
             if (audio.includes("test")) {
-              RunTInfoFetcher(`osascript -e 'tell application "Music" to get artist of track "I Need a Hero"'`)
-              
-              
+              RunTInfoFetcher(
+                `osascript -e 'tell application "Music" to get artist of track "I Need a Hero"'`
+              );
             }
             if (audio.includes("exit") || audio.includes("thanks")) {
               Speak("Exiting Music Context");
@@ -418,7 +562,11 @@ function App() {
 
             if (
               audio.includes("music") &&
-              (audio.includes("mode") || audio.includes("modality") || audio.includes("mold") || audio.includes("modes") || audio.includes("note"))
+              (audio.includes("mode") ||
+                audio.includes("modality") ||
+                audio.includes("mold") ||
+                audio.includes("modes") ||
+                audio.includes("note"))
             ) {
               Speak("Buffering up music modality");
 
@@ -429,9 +577,6 @@ function App() {
               // console.log("sure thing");
               Speak("sure thing");
               KeyWordHeard = false;
-            }
-            if (audio.includes("exit")) {
-              Speak("Ba Bye");
             }
           }
         } else {
