@@ -63,6 +63,20 @@ function App() {
       .catch((err) => console.log(`SpeechSynthesis ERROR: ${err}`));
   };
 
+  const PromiseSpeak = (response) => {
+    return new Promise((resolve, reject) => {
+      axios
+        .post("/speaking", {
+          text: response,
+        })
+        .then((res) => {
+          console.log(res.data);
+          resolve("Done Speaking");
+        })
+        .catch((err) => reject(`SpeechSynthesis ERROR: ${err}`));
+    });
+  };
+
   const SearchSong = (request) => {
     let SongNameList = [];
     let counter = 0;
@@ -157,7 +171,7 @@ function App() {
     }
   };
 
-  const SearchBand = (request) => {
+  const SearchBand = async (request) => {
     console.log("searching");
 
     let BandNameList = [];
@@ -190,18 +204,33 @@ function App() {
 
     let ArtistName = BandNameList.join("");
 
-    Speak(`Reproducing songs by ${ArtistName}`);
+    await PromiseSpeak(`Reproducing songs by ${ArtistName}`);
 
-    for (let c = 1; c < 15; c++) {
-      RunTCommand(
-        `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
-      );
-    }
-    for (let c = 1; c < 15; c++) {
-      RunTCommand(
-        `osascript -e 'tell app "Music" to duplicate track the name of (track ${c} whose artist is "${ArtistName}") to playlist "Polymorph"'`
-      );
-    }
+    const RefreshSongs = new Promise((resolve, reject) => {
+      for (let c = 1; c < 10; c++) {
+        RunTCommand(
+          `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+        );
+      }
+      for (let c = 1; c < 20; c++) {
+        setTimeout(() => {
+          RunTCommand(
+            `osascript -e 'tell app "Music" to duplicate track the name of (track ${c} whose artist is "${ArtistName}") to playlist "Polymorph"'`
+          );
+        }, 100);
+      }
+
+      resolve("Done Searching");
+    });
+
+    RefreshSongs.then((res) => {
+      setTimeout(() => {
+        console.log("NOW PLAYING");
+        RunTCommand(
+          `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
+        );
+      }, 1000);
+    });
   };
 
   const RepeatSongForever = (request) => {
@@ -537,9 +566,6 @@ function App() {
               if (audio.includes("playlist")) SearchPlayList(audio);
               if (audio.includes("band") || audio.includes("artist")) {
                 SearchBand(audio);
-                RunTCommand(
-                  `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
-                );
               }
             }
             if (audio.includes("test")) {
