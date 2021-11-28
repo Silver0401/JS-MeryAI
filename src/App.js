@@ -33,14 +33,16 @@ function App() {
   };
 
   const RunTInfoFetcher = (command) => {
-    axios
-      .post("/dataFetcher", {
-        action: command,
-      })
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((err) => console.log(`ActionCommand ERROR:${err}`));
+    return new Promise((resolve) => {
+      axios
+        .post("/dataFetcher", {
+          action: command,
+        })
+        .then((response) => {
+          resolve(response.data);
+        })
+        .catch((err) => console.log(`ActionCommand ERROR:${err}`));
+    });
   };
 
   const CPURemote = (command) => {
@@ -77,7 +79,7 @@ function App() {
     });
   };
 
-  const SearchSong = (request) => {
+  const SearchSong = async (request) => {
     let SongNameList = [];
     let counter = 0;
     let checker = 1;
@@ -107,14 +109,19 @@ function App() {
     if (songName === "Kiss") songName = "Zou Bisou Bisou";
     if (songName === "for minutes") songName = "4 minutes";
 
-    // let songArtist = RunTInfoFetcher(`osascript -e 'tell application "Music" to get artist of track "${songName}"'`)
-
-    // Speak(`Playing ${songName} of ${songArtist}`)
-    Speak(`Playing ${songName}`);
-
-    RunTCommand(
-      `osascript -e 'tell application "Music" to play track "${songName}"'`
+    const songArtist = await RunTInfoFetcher(
+      `osascript -e 'tell application "Music" to get artist of track "${songName}"'`
     );
+
+    if (songArtist) {
+      Speak(`Playing ${songName} by: ${songArtist}`);
+
+      RunTCommand(
+        `osascript -e 'tell application "Music" to play track "${songName}"'`
+      );
+    } else {
+      Speak("I didn't find such song");
+    }
   };
 
   const SearchPlayList = (request) => {
@@ -313,6 +320,84 @@ function App() {
     }
   };
 
+  const DecreaseIncreaseCurrentVolume = async (type, request) => {
+    const currentVolumeData = await RunTInfoFetcher(
+      "osascript -e 'get volume settings'"
+    );
+
+    const optimizedCurrentVolumeData = currentVolumeData.split("");
+    let volumeFound = false;
+    let processDone = false;
+    let volAmountFound = false;
+    let filteredVolumeList = [];
+    let filteredRequestVolume = [];
+
+    optimizedCurrentVolumeData.forEach((letter) => {
+      if (processDone) {
+      } else {
+        if (volumeFound) {
+          if (letter === ",") {
+            processDone = true;
+          } else {
+            filteredVolumeList.push(letter);
+          }
+        } else {
+          if (letter === ":") {
+            volumeFound = true;
+          } else {
+          }
+        }
+      }
+    });
+
+    request.forEach((word) => {
+      if (volAmountFound) {
+        filteredRequestVolume.push(word);
+      } else {
+        if (word === "by") {
+          volAmountFound = true;
+        }
+      }
+    });
+
+    const volAmount = parseInt(filteredRequestVolume.join("").trim());
+    const filteredVolume = parseInt(filteredVolumeList.join(""));
+
+    if (type === "getCurrent") {
+      Speak(`Current volume: ${filteredVolume}`);
+    } else {
+      if (volAmount) {
+        if (type === "increase") {
+          Speak(`Sound Level set to ${filteredVolume + volAmount}`);
+          RunTCommand(
+            `osascript -e "set volume output volume ${
+              filteredVolume + volAmount
+            }"`
+          );
+        } else if (type === "decrease") {
+          Speak(`Sound Level set to ${filteredVolume - volAmount}`);
+          RunTCommand(
+            `osascript -e "set volume output volume ${
+              filteredVolume - volAmount
+            }"`
+          );
+        }
+      } else {
+        if (type === "increase") {
+          Speak(`Sound Level set to ${filteredVolume + 10}`);
+          RunTCommand(
+            `osascript -e "set volume output volume ${filteredVolume + 10}"`
+          );
+        } else if (type === "decrease") {
+          Speak(`Sound Level set to ${filteredVolume - 10}`);
+          RunTCommand(
+            `osascript -e "set volume output volume ${filteredVolume - 10}"`
+          );
+        }
+      }
+    }
+  };
+
   const SayAJoke = () => {
     const jokeList = [
       "I invented a new word! I called it plagiarism",
@@ -371,6 +456,13 @@ function App() {
         if (KeyWordHeard) {
           CurrentState = "awaiting command";
 
+          if (audio.includes("test")) {
+            Speak("Testing command");
+            RunTInfoFetcher(
+              `osascript -e 'tell application "Music" to get artist of track "I Need a Hero"'`
+            );
+          }
+
           if (
             (audio.includes("itunes") || audio.includes("music")) &&
             audio.includes("volume")
@@ -383,6 +475,17 @@ function App() {
           ) {
             SetVolumeTo(audio, "general");
           }
+
+          if (audio.includes("volume")) {
+            if (audio.includes("increase") || audio.includes("raise")) {
+              DecreaseIncreaseCurrentVolume("increase", audio);
+            } else if (audio.includes("decrease") || audio.includes("lower")) {
+              DecreaseIncreaseCurrentVolume("decrease", audio);
+            } else if (audio.includes("current")) {
+              DecreaseIncreaseCurrentVolume("getCurrent", audio);
+            }
+          }
+
           if (
             ((audio.includes("tell") && audio.includes("me")) ||
               (audio.includes("say") && audio.includes("a")) ||
@@ -567,11 +670,6 @@ function App() {
               if (audio.includes("band") || audio.includes("artist")) {
                 SearchBand(audio);
               }
-            }
-            if (audio.includes("test")) {
-              RunTInfoFetcher(
-                `osascript -e 'tell application "Music" to get artist of track "I Need a Hero"'`
-              );
             }
             if (audio.includes("exit") || audio.includes("thanks")) {
               Speak("Exiting Music Context");
