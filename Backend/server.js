@@ -108,7 +108,8 @@ app.post("/dataFetcher", (req, res) => {
   if (dataFetcher.action !== "waiting for action") {
     try {
       cmd2.get(dataFetcher.action, function (err, data, stderr) {
-        res.status(200).send(data);
+        if (stderr) res.status(200).send(stderr);
+        else res.status(200).send(data);
       });
     } catch (error) {
       res.status(405).send(error);

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Monofett&family=MuseoModerno:wght@300&family=Poiret+One&family=Ribeye+Marrow&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Monofett&family=MuseoModerno:wght@300&family=Poiret+One&family=Ribeye+Marrow&display=swap");
 
 @import "./../scss/Animations";
 @import "./../scss/Misc";
@@ -11,35 +11,30 @@ font-family: 'MuseoModerno', cursive;
 font-family: 'Poiret One', cursive;
 font-family: 'Ribeye Marrow', cursive; */
 
-
-*{
-  padding: 0; margin: 0;
+* {
+  padding: 0;
+  margin: 0;
   /* font-family: 'Cutive Mono', monospace; */
   /* font-family: 'Monofett', cursive; */
-  font-family: 'MuseoModerno', cursive;
+  font-family: "MuseoModerno", cursive;
   font-weight: 900;
   font-size: 12px;
   /* font-family: 'Poiret One', cursive; */
   /* font-family: 'Ribeye Marrow', cursive; */
 }
 
-html{
+html {
   background-color: black;
 }
 
 .App {
-    position: absolute;
-    text-align: center;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-
-
-
-
-

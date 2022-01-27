@@ -1,16 +1,29 @@
 // Libraries
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./styling/css/App.css";
+import "./styling/css/App.min.css";
 
 // Animation Components
 import BotAnim from "./components/animations/Bot";
 
 function App() {
+  const recognition = new (window.SpeechRecognition ||
+    window.webkitSpeechRecognition ||
+    window.mozSpeechRecognition ||
+    window.msSpeechRecognition)();
+  const speechRecognitionList = new (window.SpeechGrammarList ||
+    window.webkitSpeechGrammarList)();
+
   const [MuteButtonState, setMuteButtonState] = useState(false);
+  const [merySpokenText, setMerySpokenText] = useState("awaiting...");
+  const [userSpokenText, setUserSpokenText] = useState("awaiting...");
+  const [currentOptions, setCurrentOptions] = useState([]);
+  let BackGroundCheck;
+
   const nameList = [
     "mery",
     "mary",
+    "married",
     "ameri",
     "marry",
     "marion",
@@ -23,6 +36,19 @@ function App() {
 
   // Mery Commands
 
+  const StartStopBGCheck = (command) => {
+    if (command === "start") {
+      BackGroundCheck = setInterval(() => {
+        try {
+          console.log("AI restarted");
+          recognition.start();
+        } catch (error) {}
+      }, 10000);
+    } else {
+      clearInterval(BackGroundCheck);
+    }
+  };
+
   const RunTCommand = (command) => {
     axios
       .post("/transcript", {
@@ -33,7 +59,7 @@ function App() {
   };
 
   const RunTInfoFetcher = (command) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       axios
         .post("/dataFetcher", {
           action: command,
@@ -41,7 +67,10 @@ function App() {
         .then((response) => {
           resolve(response.data);
         })
-        .catch((err) => console.log(`ActionCommand ERROR:${err}`));
+        .catch((err) => {
+          console.log(`ActionCommand ERROR:${err}`);
+          reject(`ActionCommand ERROR:${err}`);
+        });
     });
   };
 
@@ -61,21 +90,57 @@ function App() {
       })
       .then((res) => {
         res.data === "ending process" ? window.close() : console.log(res.data);
+        setMerySpokenText(response);
+        // console.log("stopped");
+        recognition.stop();
+        setTimeout(() => {
+          try {
+            recognition.start();
+            // console.log("restarted");
+          } catch (err) {
+            // console.error("normal error, no biggie");
+          }
+        }, 2500);
       })
       .catch((err) => console.log(`SpeechSynthesis ERROR: ${err}`));
   };
 
-  const PromiseSpeak = (response) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .post("/speaking", {
-          text: response,
-        })
-        .then((res) => {
-          console.log(res.data);
-          resolve("Done Speaking");
-        })
-        .catch((err) => reject(`SpeechSynthesis ERROR: ${err}`));
+  const SpeakRepeatedly = (responseList) => {
+    console.log(responseList);
+    setCurrentOptions(responseList);
+    // clearInterval(BackGroundCheck);
+    StartStopBGCheck("stop");
+    recognition.stop();
+    console.log("stopped recog");
+
+    axios
+      .post("/speaking", {
+        text: "Select a command",
+      })
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => console.log(`SpeechSynthesis ERROR: ${err}`));
+
+    setTimeout(() => {
+      try {
+        console.log("started recog");
+        StartStopBGCheck("start");
+        recognition.start();
+      } catch (err) {}
+    }, 2500 * (responseList.length + 1));
+
+    responseList.forEach((response, index) => {
+      setTimeout(() => {
+        axios
+          .post("/speaking", {
+            text: response,
+          })
+          .then((res) => {
+            console.log(res.data);
+          })
+          .catch((err) => console.log(`SpeechSynthesis ERROR: ${err}`));
+      }, 2500 * (index + 1));
     });
   };
 
@@ -113,14 +178,14 @@ function App() {
       `osascript -e 'tell application "Music" to get artist of track "${songName}"'`
     );
 
-    if (songArtist) {
+    if (songArtist.includes("error")) {
+      Speak("I didn't find such song");
+    } else {
       Speak(`Playing ${songName} by: ${songArtist}`);
 
       RunTCommand(
         `osascript -e 'tell application "Music" to play track "${songName}"'`
       );
-    } else {
-      Speak("I didn't find such song");
     }
   };
 
@@ -210,37 +275,51 @@ function App() {
     });
 
     let ArtistName = BandNameList.join("");
+    if (ArtistName === "rake" || ArtistName === "Rake") ArtistName = "reik";
 
-    await PromiseSpeak(`Reproducing songs by ${ArtistName}`);
+    await RunTInfoFetcher(
+      `osascript -e 'tell app "Music" to get the id of (track 1 whose artist is "${ArtistName}")'`
+    ).then((responseData) => {
+      if (responseData.toString().includes("error")) {
+        Speak(`I didn't find such Artist`);
+      } else {
+        Speak(`Reproducing songs by ${ArtistName}`);
 
-    const RefreshSongs = new Promise((resolve, reject) => {
-      for (let c = 1; c < 10; c++) {
-        RunTCommand(
-          `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
-        );
-      }
-      for (let c = 1; c < 20; c++) {
-        setTimeout(() => {
+        const RefreshSongs = new Promise(async (resolve, reject) => {
+          let loop1Done = false;
+          let loop2Done = false;
+          let insideCounter = 1;
+
+          while (!loop1Done) {
+            await RunTInfoFetcher(
+              `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+            ).then((responseData) => {
+              if (responseData.includes("error")) loop1Done = true;
+            });
+          }
+
+          while (!loop2Done) {
+            await RunTInfoFetcher(
+              `osascript -e 'tell app "Music" to duplicate track the name of (track ${insideCounter} whose artist is "${ArtistName}") to playlist "Polymorph"'`
+            ).then((responseData) => {
+              if (responseData.includes("error")) loop2Done = true;
+              insideCounter++;
+            });
+          }
+
+          resolve("Done Searching");
+        });
+
+        RefreshSongs.then(() => {
           RunTCommand(
-            `osascript -e 'tell app "Music" to duplicate track the name of (track ${c} whose artist is "${ArtistName}") to playlist "Polymorph"'`
+            `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
           );
-        }, 100);
+        });
       }
-
-      resolve("Done Searching");
-    });
-
-    RefreshSongs.then((res) => {
-      setTimeout(() => {
-        console.log("NOW PLAYING");
-        RunTCommand(
-          `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
-        );
-      }, 1000);
     });
   };
 
-  const RepeatSongForever = (request) => {
+  const RepeatSongForever = async (request) => {
     let SongNameList = [];
     let counter = 0;
     let checker = 1;
@@ -271,20 +350,134 @@ function App() {
     });
 
     let songName = SongNameList.join("");
-    console.log(songName);
 
-    Speak(`Repeating Forever, song: ${songName}`);
+    const songArtist = await RunTInfoFetcher(
+      `osascript -e 'tell application "Music" to get artist of track "${songName}"'`
+    );
 
-    for (let c = 1; c < 15; c++) {
-      RunTCommand(
-        `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
-      );
+    if (songArtist.includes("error")) {
+      Speak("I didn't find such song");
+    } else {
+      Speak(`Repeating Forever, song: ${songName}, by: ${songArtist}`);
+
+      const RefreshSongs = new Promise(async (resolve, reject) => {
+        let loop1Done = false;
+
+        while (!loop1Done) {
+          await RunTInfoFetcher(
+            `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+          ).then((responseData) => {
+            if (responseData.includes("error")) loop1Done = true;
+          });
+        }
+
+        for (let c = 1; c < 15; c++) {
+          await RunTInfoFetcher(
+            `osascript -e 'tell app "Music" to duplicate track "${songName}" to playlist "Polymorph"'`
+          );
+        }
+
+        resolve("Done Searching");
+      });
+
+      RefreshSongs.then(() => {
+        RunTCommand(
+          `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
+        );
+      });
     }
-    for (let c = 1; c < 15; c++) {
-      RunTCommand(
-        `osascript -e 'tell app "Music" to duplicate track "${songName}" to playlist "Polymorph"'`
-      );
-    }
+  };
+
+  const RepeatBandForever = async (request) => {
+    let BandNameList = [];
+    let counter = 0;
+    let checker = 1;
+
+    request.forEach((word) => {
+      if (
+        word === "undefinetely" ||
+        word === "songs" ||
+        word === "track" ||
+        word === "forever" ||
+        word === "by" ||
+        word === "repeat"
+      ) {
+      } else if (word === " ") {
+        checker = 2;
+      } else {
+        for (let c = 0; c <= word.length - 1; c++) {
+          if (c === 0) BandNameList.push(word.charAt(0).toUpperCase());
+          else {
+            BandNameList.push(word.charAt(c));
+          }
+        }
+
+        if (counter < request.length - 1 && counter > checker)
+          BandNameList.push(" ");
+      }
+
+      counter += 1;
+    });
+
+    let bandName = BandNameList.join("");
+    if (bandName === "rake" || bandName === "Rake") bandName = "reik";
+
+    await RunTInfoFetcher(
+      `osascript -e 'tell app "Music" to duplicate track the name of (track 1 whose artist is "${bandName}")'`
+    ).then((responseData) => {
+      if (responseData.includes("error")) {
+        Speak(`I didn't find such Artist`);
+      } else {
+        Speak(`Repeating Forever, songs by: ${bandName}`);
+
+        const RefreshSongs = new Promise(async (resolve, reject) => {
+          let loop1Done = false;
+          let loop2Done = false;
+          let insideCounter = 1;
+          let multiplyingFactor = 2;
+          let loopTracker = 1;
+
+          await RunTInfoFetcher(
+            `osascript -e 'tell app "Music" to get the id of (every track whose artist is "${bandName}")'`
+          ).then((responseData) => {
+            const trackList = responseData.split(",");
+            trackList >= 4 ? (multiplyingFactor = 2) : (multiplyingFactor = 3);
+          });
+
+          while (!loop1Done) {
+            await RunTInfoFetcher(
+              `osascript -e 'tell app "Music" to delete track 1 of playlist "Polymorph"'`
+            ).then((responseData) => {
+              if (responseData.includes("error")) loop1Done = true;
+            });
+          }
+
+          while (!loop2Done) {
+            await RunTInfoFetcher(
+              `osascript -e 'tell app "Music" to duplicate track the name of (track ${insideCounter} whose artist is "${bandName}") to playlist "Polymorph"'`
+            ).then((responseData) => {
+              if (responseData.includes("error")) {
+                if (loopTracker === insideCounter * multiplyingFactor) {
+                  loop2Done = true;
+                } else {
+                  insideCounter = 0;
+                }
+              }
+              insideCounter++;
+              loopTracker++;
+            });
+          }
+
+          resolve("Done Searching");
+        });
+
+        RefreshSongs.then(() => {
+          RunTCommand(
+            `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
+          );
+        });
+      }
+    });
   };
 
   const SetVolumeTo = (command, app) => {
@@ -417,167 +610,68 @@ function App() {
 
   useEffect(() => {
     const AIListenerEn = () => {
-      var recognition = new (window.SpeechRecognition ||
-        window.webkitSpeechRecognition ||
-        window.mozSpeechRecognition ||
-        window.msSpeechRecognition)();
+      const grammar =
+        "#JSGF V1.0; grammar names; public <name> = " +
+        nameList.join(" | ") +
+        " ;";
 
+      speechRecognitionList.addFromString(grammar, 1);
+
+      recognition.grammars = speechRecognitionList;
       recognition.lang = "en-US";
       recognition.interimResults = false;
       recognition.continuous = true;
+      recognition.maxAlternatives = 3;
 
       let KeyWordHeard = false;
       let HandsFreeModeOn = false;
       let MusicModeOn = false;
       let CurrentState = "awaiting key name";
       let LastCommand = "none";
-      // let SleepingState = false
 
       recognition.start();
 
-      const BackGroundCheck = setInterval(() => {
-        try {
-          // console.log("AI restarted")
-          recognition.start();
-        } catch (error) {
-          // console.error(error)
-        }
-      }, 10000);
+      StartStopBGCheck("start");
 
       recognition.onresult = (event) => {
-        const last = event.results.length - 1;
-        let transcript = event.results[last][0].transcript;
-        transcript = transcript.toLowerCase();
-        let heard_my_name = false;
-        let audio = transcript.split(" ");
+        let MostRealiableTranscript = "awaiting...";
+        const TranscriptRealiabilitylist = [];
 
-        console.log(transcript);
+        const last = event.results.length - 1;
+        for (let c = 0; c <= event.results[last].length - 1; c++) {
+          TranscriptRealiabilitylist.push(event.results[last][c].confidence);
+        }
+
+        MostRealiableTranscript =
+          event.results[last][
+            TranscriptRealiabilitylist.indexOf(
+              Math.max.apply(null, TranscriptRealiabilitylist)
+            )
+          ].transcript.toLowerCase();
+        let heard_my_name = false;
+        let audio = MostRealiableTranscript.split(" ");
+
+        setUserSpokenText(MostRealiableTranscript);
+
+        if (CurrentState === "Choosing a command option") {
+          CurrentState = "awaiting command";
+          KeyWordHeard = true;
+          if (audio.includes("first")) {
+            audio = currentOptions[0]?.split(" ") | currentOptions[0];
+          } else if (audio.includes("second")) {
+            audio = currentOptions[1].split(" ");
+          } else if (audio.includes("third")) {
+            audio = currentOptions[2].split(" ");
+          } else {
+            audio = audio;
+          }
+        }
+
+        console.log(currentOptions[0]);
+        console.log(audio);
 
         if (KeyWordHeard) {
           CurrentState = "awaiting command";
-
-          if (audio.includes("test")) {
-            Speak("Testing command");
-            RunTInfoFetcher(
-              `osascript -e 'tell application "Music" to get artist of track "I Need a Hero"'`
-            );
-          }
-
-          if (
-            (audio.includes("itunes") || audio.includes("music")) &&
-            audio.includes("volume")
-          ) {
-            SetVolumeTo(audio, "itunes");
-          }
-          if (
-            (audio.includes("general") || audio.includes("computer")) &&
-            audio.includes("volume")
-          ) {
-            SetVolumeTo(audio, "general");
-          }
-
-          if (audio.includes("volume")) {
-            if (audio.includes("increase") || audio.includes("raise")) {
-              DecreaseIncreaseCurrentVolume("increase", audio);
-            } else if (audio.includes("decrease") || audio.includes("lower")) {
-              DecreaseIncreaseCurrentVolume("decrease", audio);
-            } else if (audio.includes("current")) {
-              DecreaseIncreaseCurrentVolume("getCurrent", audio);
-            }
-          }
-
-          if (
-            ((audio.includes("tell") && audio.includes("me")) ||
-              (audio.includes("say") && audio.includes("a")) ||
-              (audio.includes("tell") && audio.includes("a"))) &&
-            audio.includes("joke")
-          ) {
-            SayAJoke();
-          }
-          if (audio.includes("screenshot")) {
-            const randomGeneratedNumber = Math.floor(Math.random() * 10000000);
-            RunTCommand(
-              `screencapture ~/Desktop/Screenshots/meryScreenshots${randomGeneratedNumber}.jpg`
-            );
-          }
-
-          if (audio.includes("next") && audio.includes("song")) {
-            RunTCommand(
-              "osascript -e 'tell application \"Music\" to next track'"
-            );
-          }
-          if (audio.includes("previous") && audio.includes("song")) {
-            RunTCommand(
-              "osascript -e 'tell application \"Music\" to previous track'"
-            );
-          }
-          if (audio.includes("repeat") && audio.includes("song")) {
-            RunTCommand(
-              "osascript -e 'tell application \"Music\" to back track'"
-            );
-
-            Speak("replaying song");
-          }
-          if (
-            (audio.includes("stop") && audio.includes("song")) ||
-            (audio.includes("pause") && audio.includes("song")) ||
-            (audio.includes("stop") && audio.includes("music")) ||
-            (audio.includes("pause") && audio.includes("music"))
-          ) {
-            RunTCommand("osascript -e 'tell application \"Music\" to pause'");
-            Speak("Song ceased");
-          }
-          if (
-            (audio.includes("resume") && audio.includes("music")) ||
-            (audio.includes("play") && audio.includes("music")) ||
-            (audio.includes("resume") && audio.includes("song")) ||
-            (audio.includes("play") && audio.includes("song"))
-          ) {
-            RunTCommand("osascript -e 'tell application \"Music\" to play'");
-            Speak("Reproducing");
-          }
-
-          if (
-            ((audio.includes("stop") && audio.includes("video")) ||
-              (audio.includes("pause") && audio.includes("video"))) &&
-            LastCommand !== "stop video"
-          ) {
-            LastCommand = "stop video";
-            Speak("Stopping");
-            CPURemote("Press Space");
-          }
-          if (
-            ((audio.includes("play") && audio.includes("video")) ||
-              (audio.includes("resume") && audio.includes("video"))) &&
-            LastCommand !== "play video"
-          ) {
-            LastCommand = "play video";
-            Speak("Resuming");
-            CPURemote("Press Space");
-          }
-          if (
-            ((audio.includes("mute") && audio.includes("video")) ||
-              (audio.includes("silence") && audio.includes("video"))) &&
-            LastCommand !== "mute video"
-          ) {
-            LastCommand = "mute video";
-            Speak("muting volume");
-            CPURemote("Press M");
-          }
-          if (
-            audio.includes("unmute") &&
-            audio.includes("video") &&
-            LastCommand !== "unmute video"
-          ) {
-            LastCommand = "unmute video";
-            Speak("unmuting volume");
-            CPURemote("Press M");
-          }
-
-          nameList.forEach((word) => {
-            if (audio.includes(word)) Speak("Yes sir?");
-            return;
-          });
 
           if (HandsFreeModeOn) {
             CurrentState = "hands free mode state";
@@ -644,10 +738,11 @@ function App() {
             }
             if (audio.includes("repeat")) {
               if (audio.includes("undefinetely") || audio.includes("forever")) {
-                RepeatSongForever(audio);
-                RunTCommand(
-                  `osascript -e 'tell app "Music" to play the playlist named "Polymorph"'`
-                );
+                if (audio.includes("songs") || audio.includes("by")) {
+                  RepeatBandForever(audio);
+                } else {
+                  RepeatSongForever(audio);
+                }
               } else {
                 Speak("replaying song");
                 RunTCommand(
@@ -655,7 +750,11 @@ function App() {
                 );
               }
             }
-            if (audio.includes("stop") || audio.includes("pause")) {
+            if (
+              audio.includes("stop") ||
+              audio.includes("pause") ||
+              audio.includes("cease")
+            ) {
               RunTCommand("osascript -e 'tell application \"Music\" to pause'");
               Speak("Song ceased");
             }
@@ -677,14 +776,114 @@ function App() {
               MusicModeOn = false;
             }
           } else {
-            if (audio.includes("hands-free")) {
+            if (audio.includes("classroom")) {
+              Speak("testing worked");
+            } else if (
+              (audio.includes("itunes") || audio.includes("music")) &&
+              audio.includes("volume")
+            ) {
+              SetVolumeTo(audio, "itunes");
+            } else if (
+              (audio.includes("general") || audio.includes("computer")) &&
+              audio.includes("volume")
+            ) {
+              SetVolumeTo(audio, "general");
+            } else if (audio.includes("volume")) {
+              if (audio.includes("increase") || audio.includes("raise")) {
+                DecreaseIncreaseCurrentVolume("increase", audio);
+              } else if (
+                audio.includes("decrease") ||
+                audio.includes("lower")
+              ) {
+                DecreaseIncreaseCurrentVolume("decrease", audio);
+              } else if (audio.includes("current")) {
+                DecreaseIncreaseCurrentVolume("getCurrent", audio);
+              }
+            } else if (
+              ((audio.includes("tell") && audio.includes("me")) ||
+                (audio.includes("say") && audio.includes("a")) ||
+                (audio.includes("tell") && audio.includes("a"))) &&
+              audio.includes("joke")
+            ) {
+              SayAJoke();
+            } else if (audio.includes("screenshot")) {
+              const randomGeneratedNumber = Math.floor(
+                Math.random() * 10000000
+              );
+              RunTCommand(
+                `screencapture ~/Desktop/Screenshots/meryScreenshots${randomGeneratedNumber}.jpg`
+              );
+            } else if (audio.includes("next") && audio.includes("song")) {
+              RunTCommand(
+                "osascript -e 'tell application \"Music\" to next track'"
+              );
+            } else if (audio.includes("previous") && audio.includes("song")) {
+              RunTCommand(
+                "osascript -e 'tell application \"Music\" to previous track'"
+              );
+            } else if (audio.includes("repeat") && audio.includes("song")) {
+              RunTCommand(
+                "osascript -e 'tell application \"Music\" to back track'"
+              );
+
+              Speak("replaying song");
+            } else if (
+              (audio.includes("stop") && audio.includes("song")) ||
+              (audio.includes("pause") && audio.includes("song")) ||
+              (audio.includes("stop") && audio.includes("music")) ||
+              (audio.includes("cease") && audio.includes("music")) ||
+              (audio.includes("case") && audio.includes("song")) ||
+              (audio.includes("pause") && audio.includes("music"))
+            ) {
+              RunTCommand("osascript -e 'tell application \"Music\" to pause'");
+              Speak("Song ceased");
+              KeyWordHeard = false;
+            } else if (
+              (audio.includes("resume") && audio.includes("music")) ||
+              (audio.includes("play") && audio.includes("music")) ||
+              (audio.includes("resume") && audio.includes("song")) ||
+              (audio.includes("play") && audio.includes("song"))
+            ) {
+              RunTCommand("osascript -e 'tell application \"Music\" to play'");
+              Speak("Reproducing");
+              KeyWordHeard = false;
+            } else if (
+              ((audio.includes("stop") && audio.includes("video")) ||
+                (audio.includes("pause") && audio.includes("video"))) &&
+              LastCommand !== "stop video"
+            ) {
+              LastCommand = "stop video";
+              Speak("Stopping");
+              CPURemote("Press Space");
+            } else if (
+              ((audio.includes("play") && audio.includes("video")) ||
+                (audio.includes("resume") && audio.includes("video"))) &&
+              LastCommand !== "play video"
+            ) {
+              LastCommand = "play video";
+              Speak("Resuming");
+              CPURemote("Press Space");
+            } else if (
+              ((audio.includes("mute") && audio.includes("video")) ||
+                (audio.includes("silence") && audio.includes("video"))) &&
+              LastCommand !== "mute video"
+            ) {
+              LastCommand = "mute video";
+              Speak("muting volume");
+              CPURemote("Press M");
+            } else if (
+              audio.includes("unmute") &&
+              audio.includes("video") &&
+              LastCommand !== "unmute video"
+            ) {
+              LastCommand = "unmute video";
+              Speak("unmuting volume");
+              CPURemote("Press M");
+            } else if (audio.includes("hands-free")) {
               Speak("Buffering up hands free mode");
 
               HandsFreeModeOn = true;
-              // MusicModeOn = false
-            }
-
-            if (
+            } else if (
               audio.includes("music") &&
               (audio.includes("mode") ||
                 audio.includes("modality") ||
@@ -695,12 +894,42 @@ function App() {
               Speak("Buffering up music modality");
 
               MusicModeOn = true;
-              // HandsFreeModeOn = false
-            }
-            if (audio.includes("thanks") || audio.includes("nevermind")) {
-              // console.log("sure thing");
+            } else if (
+              audio.includes("thanks") ||
+              audio.includes("nevermind") ||
+              audio.includes("nvm") ||
+              (audio.includes("never") && audio.includes("mind"))
+            ) {
               Speak("sure thing");
               KeyWordHeard = false;
+            } else {
+              let thingy = true;
+
+              nameList.forEach((word) => {
+                if (audio.includes(word)) {
+                  Speak("Yes Sir?");
+                  thingy = false;
+                }
+              });
+
+              if (thingy) {
+                if (LastCommand === "Choosing a command option") {
+                  Speak("No such command");
+                  LastCommand = "awaiting...";
+                } else {
+                  const transcriptsList = [];
+                  TranscriptRealiabilitylist.forEach((transcript) => {
+                    transcriptsList.push(
+                      event.results[last][
+                        TranscriptRealiabilitylist.indexOf(transcript)
+                      ].transcript.toLowerCase()
+                    );
+                  });
+                  SpeakRepeatedly(transcriptsList);
+                  CurrentState = "Choosing a command option";
+                  LastCommand = "Choosing a command option";
+                }
+              }
             }
           }
         } else {
@@ -731,7 +960,7 @@ function App() {
           Speak("See you in a bit");
           console.log("Stopping MeryAI");
           KeyWordHeard = false;
-          clearInterval(BackGroundCheck);
+          StartStopBGCheck("stop");
           setMuteButtonState(true);
           recognition.abort();
           return;
@@ -743,13 +972,14 @@ function App() {
       console.log("Initialized MeryAI");
       AIListenerEn();
     }
-  }, [MuteButtonState, nameList]);
+  }, [setMuteButtonState]);
 
   return (
     <div className="App">
       <div className="SvgBox">
         <BotAnim />
       </div>
+      <p className="userInput">{userSpokenText}</p>
       <div
         className="MuteButton"
         onClick={() => {
