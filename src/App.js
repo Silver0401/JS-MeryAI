@@ -15,10 +15,17 @@ function App() {
     window.webkitSpeechGrammarList)();
 
   const [MuteButtonState, setMuteButtonState] = useState(false);
-  const [merySpokenText, setMerySpokenText] = useState("awaiting...");
+
+  let thingyCoso = "awaitingToo...";
   const [userSpokenText, setUserSpokenText] = useState("awaiting...");
-  const [currentOptions, setCurrentOptions] = useState([]);
+  let currentOptions = [];
   let BackGroundCheck;
+
+  let KeyWordHeard = false;
+  let HandsFreeModeOn = false;
+  let MusicModeOn = false;
+  let CurrentState = "awaiting key name";
+  let LastCommand = "none";
 
   const nameList = [
     "mery",
@@ -40,7 +47,6 @@ function App() {
     if (command === "start") {
       BackGroundCheck = setInterval(() => {
         try {
-          console.log("AI restarted");
           recognition.start();
         } catch (error) {}
       }, 10000);
@@ -84,34 +90,36 @@ function App() {
   };
 
   const Speak = (response) => {
+    thingyCoso = response;
+
     axios
       .post("/speaking", {
         text: response,
       })
       .then((res) => {
         res.data === "ending process" ? window.close() : console.log(res.data);
-        setMerySpokenText(response);
-        // console.log("stopped");
-        recognition.stop();
-        setTimeout(() => {
-          try {
-            recognition.start();
-            // console.log("restarted");
-          } catch (err) {
-            // console.error("normal error, no biggie");
-          }
-        }, 2500);
+        // console.log(response);
+        thingyCoso = response;
+        if (
+          !MusicModeOn ||
+          !HandsFreeModeOn ||
+          !CurrentState === "Choosing a command option"
+        ) {
+          CurrentState = "awaiting key name";
+        }
+        // recognition.stop();
+        // setTimeout(() => {
+        //   try {
+        //     recognition.start();
+        //   } catch (err) {}
+        // }, 3000);
       })
       .catch((err) => console.log(`SpeechSynthesis ERROR: ${err}`));
   };
 
   const SpeakRepeatedly = (responseList) => {
-    console.log(responseList);
-    setCurrentOptions(responseList);
-    // clearInterval(BackGroundCheck);
     StartStopBGCheck("stop");
-    recognition.stop();
-    console.log("stopped recog");
+    // recognition.stop();
 
     axios
       .post("/speaking", {
@@ -124,9 +132,8 @@ function App() {
 
     setTimeout(() => {
       try {
-        console.log("started recog");
         StartStopBGCheck("start");
-        recognition.start();
+        // recognition.start();
       } catch (err) {}
     }, 2500 * (responseList.length + 1));
 
@@ -601,7 +608,7 @@ function App() {
       "What did the left eye say to the right eye?. Between you and me, something smells",
       "How do you throw a space party?. You just plan it.",
       "Where do you find a cow with no legs?. Right where you left it",
-      "Why is 6 afraid of 7?. Beacuse 7,8,9",
+      "Why is 6 afraid of 7?. Because 7,8,9",
       "How do trees go online?. They just log in",
     ];
 
@@ -622,12 +629,6 @@ function App() {
       recognition.interimResults = false;
       recognition.continuous = true;
       recognition.maxAlternatives = 3;
-
-      let KeyWordHeard = false;
-      let HandsFreeModeOn = false;
-      let MusicModeOn = false;
-      let CurrentState = "awaiting key name";
-      let LastCommand = "none";
 
       recognition.start();
 
@@ -656,22 +657,104 @@ function App() {
         if (CurrentState === "Choosing a command option") {
           CurrentState = "awaiting command";
           KeyWordHeard = true;
-          if (audio.includes("first")) {
+          if (
+            audio.includes("first") ||
+            audio.includes("one") ||
+            audio.includes("1")
+          ) {
             audio = currentOptions[0]?.split(" ") | currentOptions[0];
-          } else if (audio.includes("second")) {
-            audio = currentOptions[1].split(" ");
-          } else if (audio.includes("third")) {
-            audio = currentOptions[2].split(" ");
+          } else if (
+            audio.includes("second") ||
+            audio.includes("two") ||
+            audio.includes("2")
+          ) {
+            audio = currentOptions[1]?.split(" ") | currentOptions[1];
+          } else if (
+            audio.includes("third") ||
+            audio.includes("three") ||
+            audio.includes("3")
+          ) {
+            audio = currentOptions[2]?.split(" ") | currentOptions[2];
           } else {
             audio = audio;
           }
-        }
 
-        console.log(currentOptions[0]);
-        console.log(audio);
+          console.log(audio);
+          console.log(audio.includes("music"));
+        }
 
         if (KeyWordHeard) {
           CurrentState = "awaiting command";
+
+          if (audio.includes("current") && audio.includes("state")) {
+            Speak(CurrentState);
+          } else if (
+            (audio.includes("itunes") || audio.includes("music")) &&
+            audio.includes("volume")
+          ) {
+            SetVolumeTo(audio, "itunes");
+            MusicModeOn || HandsFreeModeOn
+              ? (KeyWordHeard = true)
+              : (KeyWordHeard = false);
+            return;
+          } else if (
+            (audio.includes("general") || audio.includes("computer")) &&
+            audio.includes("volume")
+          ) {
+            SetVolumeTo(audio, "general");
+            MusicModeOn || HandsFreeModeOn
+              ? (KeyWordHeard = true)
+              : (KeyWordHeard = false);
+            return;
+          } else if (audio.includes("volume")) {
+            if (audio.includes("increase") || audio.includes("raise")) {
+              DecreaseIncreaseCurrentVolume("increase", audio);
+            } else if (audio.includes("decrease") || audio.includes("lower")) {
+              DecreaseIncreaseCurrentVolume("decrease", audio);
+            } else if (audio.includes("current")) {
+              DecreaseIncreaseCurrentVolume("getCurrent", audio);
+            }
+            MusicModeOn || HandsFreeModeOn
+              ? (KeyWordHeard = true)
+              : (KeyWordHeard = false);
+            return;
+          } else if (
+            ((audio.includes("tell") && audio.includes("me")) ||
+              (audio.includes("say") && audio.includes("a")) ||
+              (audio.includes("tell") && audio.includes("a"))) &&
+            audio.includes("joke")
+          ) {
+            SayAJoke();
+            MusicModeOn || HandsFreeModeOn
+              ? (KeyWordHeard = true)
+              : (KeyWordHeard = false);
+            return;
+          } else if (audio.includes("screenshot")) {
+            const randomGeneratedNumber = Math.floor(Math.random() * 10000000);
+            RunTCommand(
+              `screencapture ~/Desktop/Screenshots/meryScreenshots${randomGeneratedNumber}.jpg`
+            );
+            MusicModeOn || HandsFreeModeOn
+              ? (KeyWordHeard = true)
+              : (KeyWordHeard = false);
+          } else if (
+            (audio.includes("quit") || audio.includes("close")) &&
+            audio.includes("app")
+          ) {
+            Speak("Ba Bye");
+          } else if (
+            (audio.includes("go") || audio.includes(" go")) &&
+            audio.includes("to") &&
+            audio.includes("sleep")
+          ) {
+            Speak("See you in a bit");
+            console.log("Stopping MeryAI");
+            KeyWordHeard = false;
+            StartStopBGCheck("stop");
+            setMuteButtonState(true);
+            recognition.abort();
+            return;
+          }
 
           if (HandsFreeModeOn) {
             CurrentState = "hands free mode state";
@@ -748,6 +831,9 @@ function App() {
                 RunTCommand(
                   "osascript -e 'tell application \"Music\" to back track'"
                 );
+                RunTCommand(
+                  "osascript -e 'tell application \"Music\" to play'"
+                );
               }
             }
             if (
@@ -778,41 +864,6 @@ function App() {
           } else {
             if (audio.includes("classroom")) {
               Speak("testing worked");
-            } else if (
-              (audio.includes("itunes") || audio.includes("music")) &&
-              audio.includes("volume")
-            ) {
-              SetVolumeTo(audio, "itunes");
-            } else if (
-              (audio.includes("general") || audio.includes("computer")) &&
-              audio.includes("volume")
-            ) {
-              SetVolumeTo(audio, "general");
-            } else if (audio.includes("volume")) {
-              if (audio.includes("increase") || audio.includes("raise")) {
-                DecreaseIncreaseCurrentVolume("increase", audio);
-              } else if (
-                audio.includes("decrease") ||
-                audio.includes("lower")
-              ) {
-                DecreaseIncreaseCurrentVolume("decrease", audio);
-              } else if (audio.includes("current")) {
-                DecreaseIncreaseCurrentVolume("getCurrent", audio);
-              }
-            } else if (
-              ((audio.includes("tell") && audio.includes("me")) ||
-                (audio.includes("say") && audio.includes("a")) ||
-                (audio.includes("tell") && audio.includes("a"))) &&
-              audio.includes("joke")
-            ) {
-              SayAJoke();
-            } else if (audio.includes("screenshot")) {
-              const randomGeneratedNumber = Math.floor(
-                Math.random() * 10000000
-              );
-              RunTCommand(
-                `screencapture ~/Desktop/Screenshots/meryScreenshots${randomGeneratedNumber}.jpg`
-              );
             } else if (audio.includes("next") && audio.includes("song")) {
               RunTCommand(
                 "osascript -e 'tell application \"Music\" to next track'"
@@ -915,6 +966,7 @@ function App() {
               if (thingy) {
                 if (LastCommand === "Choosing a command option") {
                   Speak("No such command");
+                  KeyWordHeard = false;
                   LastCommand = "awaiting...";
                 } else {
                   const transcriptsList = [];
@@ -925,6 +977,25 @@ function App() {
                       ].transcript.toLowerCase()
                     );
                   });
+
+                  const meryTextOptimized = thingyCoso
+                    .replace(/[.,#!$%&;:{}=\-_`~()?¿]/g, "")
+                    .toLowerCase();
+                  let similarityFound = false;
+
+                  transcriptsList.forEach((option) => {
+                    if (!similarityFound) {
+                      if (
+                        option.toLowerCase().split(" ") === meryTextOptimized ||
+                        option.toLowerCase() === meryTextOptimized
+                      ) {
+                        KeyWordHeard = true;
+                        similarityFound = true;
+                        console.log("similarity found, audio ommited");
+                      }
+                    }
+                  });
+
                   SpeakRepeatedly(transcriptsList);
                   CurrentState = "Choosing a command option";
                   LastCommand = "Choosing a command option";
@@ -940,30 +1011,9 @@ function App() {
           });
 
           if (heard_my_name) {
-            Speak("Yes sir?");
+            Speak("Yes Sir?");
             KeyWordHeard = true;
           }
-        }
-
-        if (audio.includes("current") && audio.includes("state"))
-          Speak(CurrentState);
-        if (
-          (audio.includes("quit") || audio.includes("exit")) &&
-          audio.includes("app")
-        )
-          Speak("Ba Bye");
-        if (
-          (audio.includes("go") || audio.includes(" go")) &&
-          audio.includes("to") &&
-          audio.includes("sleep")
-        ) {
-          Speak("See you in a bit");
-          console.log("Stopping MeryAI");
-          KeyWordHeard = false;
-          StartStopBGCheck("stop");
-          setMuteButtonState(true);
-          recognition.abort();
-          return;
         }
       };
     };
